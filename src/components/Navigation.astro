@@ -1,0 +1,23 @@
+---
+const links = [
+  { href: '/', text: 'Home' },
+  { href: '/projects', text: 'Projetos' },
+  { href: '/blog', text: 'Blog' },
+  { href: '/gallery', text: 'Galeria' },
+];
+---
+
+<nav>
+  <ul class="flex space-x-6">
+    {links.map(({ href, text }) => (
+      <li>
+        <a
+          href={href}
+          class="hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+        >
+          {text}
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>

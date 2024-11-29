@@ -1,0 +1,60 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import { format } from 'date-fns';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map(post => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await post.render();
+---
+
+<Layout title={post.data.title}>
+  <article class="max-w-3xl mx-auto prose prose-lg dark:prose-invert">
+    <header class="mb-8">
+      <h1 class="text-4xl font-bold mb-2">{post.data.title}</h1>
+      <div class="text-gray-600 dark:text-gray-400">
+        <time datetime={post.data.publishDate.toISOString()}>
+          {format(post.data.publishDate, 'MMMM d, yyyy')}
+        </time>
+        <span class="mx-2">•</span>
+        <span>{post.data.author}</span>
+      </div>
+      <div class="flex gap-2 mt-4">
+        {post.data.tags.map((tag: string) => (
+          <span class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm">
+            {tag}
+          </span>
+        ))}
+      </div>
+    </header>
+    <div class="prose-headings:font-bold prose-a:text-blue-600 dark:prose-a:text-blue-400">
+      <Content />
+    </div>
+  </article>
+</Layout>
+
+<style>
+  :global(.prose) {
+    max-width: 100%;
+  }
+  :global(.prose pre) {
+    background-color: #1a1a1a;
+    color: #fff;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+  }
+  :global(.prose code) {
+    color: #ef4444;
+  }
+  :global(.dark .prose code) {
+    color: #f87171;
+  }
+</style>

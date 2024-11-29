@@ -1,0 +1,43 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import { format } from 'date-fns';
+
+const posts = await getCollection('blog');
+---
+
+<Layout title="Blog">
+  <div class="max-w-3xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8">
+      Blog 📘
+    </h1>
+    <div class="space-y-8">
+      {posts.map((post) => (
+        <article class="border-b dark:border-gray-700 pb-8">
+          <h2 class="text-2xl font-bold mb-2">
+            <a href={`/blog/${post.slug}`} class="hover:text-blue-500 dark:hover:text-blue-400">
+              {post.data.title}
+            </a>
+          </h2>
+          <div class="text-gray-600 dark:text-gray-400 text-sm mb-4">
+            <time datetime={post.data.publishDate.toISOString()}>
+              {format(post.data.publishDate, 'MMMM d, yyyy')}
+            </time>
+            <span class="mx-2">•</span>
+            <span>{post.data.author}</span>
+          </div>
+          <p class="text-gray-600 dark:text-gray-400 mb-4">
+            {post.data.description}
+          </p>
+          <div class="flex gap-2">
+            {post.data.tags.map((tag) => (
+              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm">
+                {tag}
+              </span>
+            ))}
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,22 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getGalleryImages } from '../utils/gallery';
+
+const images = await getGalleryImages();
+---
+
+<Layout title="Gallery">
+  <h1 class="text-3xl font-bold mb-8">Galeria 🖼</h1>
+  <div class="columns-1 md:columns-2 lg:columns-3 gap-4">
+    {images.map((image) => (
+      <div class="break-inside-avoid mb-4">
+        <img
+          src={`/images/gallery/${image}`}
+          alt={image.split('.')[0]}
+          class="rounded-lg hover:opacity-90 transition-opacity"
+          loading="lazy"
+        />
+      </div>
+    ))}
+  </div>
+</Layout>

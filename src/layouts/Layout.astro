@@ -1,0 +1,64 @@
+---
+import '@fontsource/jetbrains-mono';
+import ThemeToggle from '../components/ThemeToggle.astro';
+import Navigation from '../components/Navigation.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "Noé Júnior" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image" href="/favicon.jpg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-200">
+    <div class="max-w-4xl mx-auto px-4 py-8">
+      <header class="flex justify-between items-center mb-8">
+        <Navigation />
+        <ThemeToggle />
+      </header>
+      <main>
+        <slot />
+      </main>
+    </div>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --font-size-base: 16px;
+    --color-text: #1a1a1a;
+    --color-bg: #ffffff;
+  }
+
+  :root.dark {
+    --color-text: #ffffff;
+    --color-bg: #1a1a1a;
+  }
+
+  html {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--font-size-base);
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  .transition-colors {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
+</style>
