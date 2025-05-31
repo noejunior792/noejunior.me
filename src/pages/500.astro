@@ -1,0 +1,44 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SocialLinks from "../components/SocialLinks.astro";
+---
+
+<Layout title="Erro Interno">
+  <div class="min-h-screen flex flex-col items-center justify-center text-center px-4 space-y-8">
+    <div class="space-y-4">
+      <h1 class="text-6xl font-bold text-red-600 dark:text-red-400">500</h1>
+      <h2 class="text-3xl font-bold">Erro no servidor</h2>
+      <p class="text-xl text-gray-600 dark:text-gray-400 max-w-lg">
+        Oops! Algo deu errado no nosso servidor. Por favor, tente novamente mais tarde.
+      </p>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-4">
+      <a
+        href="/"
+        class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors duration-200"
+      >
+        Voltar para Home
+      </a>
+      <a
+        href="javascript:location.reload()"
+        class="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium rounded-md transition-colors duration-200"
+      >
+        Tentar Novamente
+      </a>
+    </div>
+
+    <div class="pt-8">
+      <SocialLinks />
+    </div>
+  </div>
+</Layout>
+
+<style is:global>
+  body {
+    background-color: white;
+  }
+  .dark body {
+    background-color: #111827;
+  }
+</style>

@@ -14,5 +14,10 @@ export default defineConfig({
       theme: 'dracula',
       wrap: true
     }
-  }
+  },
+  vite: {
+      define: {
+        'import.meta.env.WEBHOOK_URL': JSON.stringify(process.env.PUBLIC_WEBHOOK_URL)
+      }
+    }
 });

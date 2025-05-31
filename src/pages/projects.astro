@@ -3,38 +3,112 @@ import Layout from '../layouts/Layout.astro';
 import { projects } from '../data/projects';
 ---
 
-<Layout title="Projects">
-  <h1 class="text-3xl font-bold mb-8">Meus Projetos 💻</h1>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-    {projects.map((project) => (
-      <div class="border dark:border-gray-700 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-        <img
-          src={project.image}
-          alt={project.title}
-          class="w-full h-48 object-cover"
-          loading="lazy"
-        />
-        <div class="p-6">
-          <h3 class="text-xl font-bold mb-2">{project.title}</h3>
-          <p class="text-gray-600 dark:text-gray-400 mb-4">{project.description}</p>
-          <div class="flex flex-wrap gap-2 mb-4">
-            {project.technologies.map((tech) => (
-              <span class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm">
-                {tech}
-              </span>
-            ))}
+<Layout title="Atuação">
+  <h1 class="text-3xl font-bold mb-4">Minha Atuação Profissional </h1>
+  <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl">
+    Aqui estão as empresas onde trabalho ou trabalhei, bem como os projetos que desenvolvo, já desenvolvi ou mantenho. Explore para conhecer mais sobre minha trajetória profissional!
+  </p>
+
+  <div class="flex gap-3 mb-8">
+    <button class="filter-btn active px-4 py-2 rounded-full bg-blue-500 text-white" data-filter="all">Todos</button>
+    <button class="filter-btn px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700" data-filter="projeto">Projetos</button>
+    <button class="filter-btn px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700" data-filter="empresa">Empresas</button>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="portfolio-grid">
+    {projects.map((item) => (
+      <div class={`portfolio-item border dark:border-gray-700 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col ${item.type}`}>
+        <div class="w-full h-48 bg-gray-100 dark:bg-gray-800 relative overflow-hidden flex items-center justify-center">
+          {item.type === 'empresa' ? (
+            <>
+              {item.logo ? (
+                <img src={item.logo} alt={`${item.title} logo`} class="max-h-32 max-w-[80%] object-contain" loading="lazy" />
+              ) : (
+                <div class="text-4xl font-bold text-gray-400 dark:text-gray-600">{item.title.charAt(0)}</div>
+              )}
+            </>
+          ) : (
+            <img
+              src={item.link}
+              alt={`${item.title} preview`}
+              class="w-full h-48 object-cover"
+              loading="lazy"
+              onerror='this.style.display="none";this.parentElement.innerHTML="<div class=\"w-full h-full flex items-center justify-center text-gray-500\">Preview não disponível</div>";'
+            />
+          )}
+        </div>
+
+        <div class="p-4 flex-grow">
+          <div class="flex justify-between items-start mb-2">
+            <h3 class="text-xl font-bold">{item.title}</h3>
+            <span class={`text-xs px-2 py-1 rounded-full
+              ${item.type === 'empresa' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'}`}>
+              {item.type === 'empresa' ? 'Empresa' : 'Projeto'}
+            </span>
           </div>
+
+          <p class="text-gray-600 dark:text-gray-400 mb-4">{item.description}</p>
+
+          {item.type === 'projeto' && item.status && (
+            <div class="mb-4">
+              <span class={`inline-block px-3 py-1 rounded-full text-sm font-medium
+                ${item.status === 'online' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                  item.status === 'development' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                  item.status === 'canceled' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' : ''}`}>
+                {item.status === 'online' ? 'Online' :
+                 item.status === 'development' ? 'Em desenvolvimento' :
+                 item.status === 'canceled' ? 'Cancelado' : ''}
+              </span>
+            </div>
+          )}
+
+          {item.technologies && item.technologies.length > 0 && (
+            <div class="flex flex-wrap gap-2 mb-4">
+              {item.technologies.map((tech) => (
+                <span class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm">
+                  {tech}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {item.type === 'empresa' && item.period && (
+            <div class="mb-4">
+              <span class="inline-block bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full text-sm">
+                {item.period}
+              </span>
+            </div>
+          )}
+
           <a
-            href={project.link}
+            href={item.url || item.link}
             target="_blank"
             rel="noopener noreferrer"
-            class="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-500"
-            aria-label={`View ${project.title} project`}
+            class="mt-auto text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-500 inline-flex items-center"
+            aria-label={`View ${item.title}`}
           >
-            View Project →
+            {item.type === 'empresa' ? 'Visitar Site →' : 'Ver Projeto →'}
           </a>
         </div>
       </div>
     ))}
   </div>
+
+  <script>
+    document.querySelectorAll('.filter-btn').forEach((btn: HTMLElement) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach((b: HTMLElement) => b.classList.remove('active', 'bg-blue-500', 'text-white'));
+        btn.classList.add('active', 'bg-blue-500', 'text-white');
+
+        const filter = btn.dataset.filter;
+        document.querySelectorAll('.portfolio-item').forEach((item: HTMLElement) => {
+          if (filter === 'all' || item.classList.contains(filter)) {
+            item.style.display = 'flex';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      });
+    });
+  </script>
 </Layout>

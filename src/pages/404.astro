@@ -1,0 +1,29 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SocialLinks from "../components/SocialLinks.astro";
+---
+
+<Layout title="Página Não Encontrada">
+  <div class="min-h-screen flex flex-col items-center justify-center text-center px-4 space-y-8">
+    <div class="space-y-4">
+      <h1 class="text-6xl font-bold text-blue-600 dark:text-blue-400">404</h1>
+      <h2 class="text-3xl font-bold">Oops! Página não encontrada</h2>
+      <p class="text-xl text-gray-600 dark:text-gray-400 max-w-lg">
+        A página que você está procurando pode ter sido removida, ter seu nome alterado ou está temporariamente indisponível.
+      </p>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-4">
+      <a
+        href="/"
+        class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors duration-200"
+      >
+        Voltar para Home
+      </a>
+    </div>
+
+    <div class="pt-8">
+      <SocialLinks />
+    </div>
+  </div>
+</Layout>
