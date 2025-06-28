@@ -6,9 +6,11 @@ import Navigation from '../components/Navigation.astro';
 interface Props {
   title: string;
   description?: string;
+  image?: string;
 }
 
-const { title, description = "Noé Júnior" } = Astro.props;
+const { title, description = "Noé Júnior", image } = Astro.props;
+const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/images/social.jpg', Astro.url.origin).href;
 ---
 
 <!doctype html>
@@ -20,6 +22,20 @@ const { title, description = "Noé Júnior" } = Astro.props;
     <link rel="icon" type="image" href="/favicon.jpg" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url.href} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={socialImage} />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={Astro.url.href} />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+    <meta property="twitter:image" content={socialImage} />
   </head>
   <body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-200">
     <div class="max-w-4xl mx-auto px-4 py-8">
