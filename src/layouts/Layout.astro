@@ -2,6 +2,7 @@
 import '@fontsource/jetbrains-mono';
 import ThemeToggle from '../components/ThemeToggle.astro';
 import Navigation from '../components/Navigation.astro';
+import { ViewTransitions } from 'astro:transitions';
 
 interface Props {
   title: string;
@@ -22,6 +23,7 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
     <link rel="icon" type="image" href="/favicon.jpg" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    <ViewTransitions />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
