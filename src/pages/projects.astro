@@ -1,6 +1,7 @@
 ---
-import Layout from '../layouts/Layout.astro';
+---import Layout from '../layouts/Layout.astro';
 import { projects } from '../data/projects';
+import { Image } from 'astro:assets';
 ---
 
 <Layout title="Atuação">
@@ -22,18 +23,19 @@ import { projects } from '../data/projects';
           {item.type === 'empresa' ? (
             <>
               {item.logo ? (
-                <img src={item.logo} alt={`${item.title} logo`} class="max-h-32 max-w-[80%] object-contain" loading="lazy" />
+                <Image src={item.logo} alt={`${item.title} logo`} class="max-h-32 max-w-[80%] object-contain" loading="lazy" width={128} height={128} />
               ) : (
                 <div class="text-4xl font-bold text-gray-400 dark:text-gray-600">{item.title.charAt(0)}</div>
               )}
             </>
           ) : (
-            <img
+            <Image
               src={item.link}
               alt={`${item.title} preview`}
               class="w-full h-48 object-cover"
               loading="lazy"
-              onerror='this.style.display="none";this.parentElement.innerHTML="<div class=\"w-full h-full flex items-center justify-center text-gray-500\">Preview não disponível</div>";'
+              width={400}
+              height={200}
             />
           )}
         </div>
