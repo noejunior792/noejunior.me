@@ -17,12 +17,12 @@ import ContactForm from "../components/ContactForm.astro";
     </section>
     <section id="secret-form-section" class="text-center py-8">
       <p class="mb-4 text-lg">Alerta: botão vermelho, não clicar!</p>
-      <button id="reveal-button" class="px-6 py-3 bg-red-600 text-white font-bold rounded-lg shadow-lg hover:bg-red-700 transition-all duration-300 transform hover:scale-105">
+      <button id="reveal-button" class="px-6 py-3 bg-red-400 text-white font-bold rounded-lg shadow-lg hover:bg-red-500 transition-all duration-300 transform hover:scale-105">
         Não clique aqui
       </button>
     </section>
 
-    <div id="contact-form-wrapper" class="max-h-0 opacity-0 overflow-hidden transition-all duration-1000 ease-in-out">
+    <div id="contact-form-wrapper" class="hidden opacity-0 transition-opacity duration-1000">
       <ContactForm />
     </div>
 
@@ -33,8 +33,7 @@ import ContactForm from "../components/ContactForm.astro";
 
   revealButton.addEventListener('click', () => {
     secretSection.style.display = 'none';
-    formWrapper.classList.remove('max-h-0');
-    formWrapper.style.maxHeight = formWrapper.scrollHeight + 'px'; // Set max-height to actual height
+    formWrapper.classList.remove('hidden');
     setTimeout(() => {
       formWrapper.classList.remove('opacity-0');
     }, 100);
