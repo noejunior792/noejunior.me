@@ -6,12 +6,11 @@ import node from '@astrojs/node';
 
 export default defineConfig({
   output: 'server',
-  adapter: node(),
+  adapter: node({ mode: 'standalone' }),
   integrations: [
     mdx(),
     tailwind(),
     react(),
-    node({ mode: 'standalone' }),
   ],
   markdown: {
     shikiConfig: {
