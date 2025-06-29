@@ -1,16 +1,19 @@
 ---
+import { toast } from 'sonner';
 ---
 <section class="p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-xl transition-all duration-300 max-w-sm mx-auto">
   <h2 class="text-xl font-bold text-center text-gray-800 dark:text-white mb-3">Deixe um recadinho ❤️</h2>
-  <form class="space-y-3">
+  <form id="anonymous-message-form" class="space-y-3">
     <textarea 
+      id="message-textarea"
       class="w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-pink-300 dark:focus:ring-pink-500 transition-all duration-300 text-sm" 
       rows="4" 
       placeholder="Sinta-se à vontade para escrever o que quiser..."
     ></textarea>
     <button 
+      id="submit-button"
       type="submit" 
-      class="w-full px-4 py-2 font-bold text-white bg-gradient-to-r from-pink-500 to-yellow-500 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 text-sm"
+      class="w-full px-4 py-2 font-bold text-gray-800 bg-gray-200 rounded-xl shadow-md hover:bg-gray-300 dark:text-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-all duration-300 flex items-center justify-center gap-2 text-sm"
     >
       <span>Enviar com carinho</span>
       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -19,3 +22,50 @@
     </button>
   </form>
 </section>
+
+<script>
+  import { toast } from 'sonner';
+
+  const form = document.getElementById('anonymous-message-form');
+  const messageTextarea = document.getElementById('message-textarea');
+  const submitButton = document.getElementById('submit-button');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const message = messageTextarea.value.trim();
+
+    if (!message) {
+      toast.error('Por favor, escreva uma mensagem antes de enviar.');
+      return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<span class="animate-pulse">Enviando...</span>';
+
+    try {
+      const response = await fetch('/api/send-message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(data.message || 'Mensagem enviada com sucesso!');
+        messageTextarea.value = ''; // Clear the textarea
+      } else {
+        toast.error(data.message || 'Erro ao enviar mensagem.');
+      }
+    } catch (error) {
+      console.error('Erro de rede:', error);
+      toast.error('Erro de rede. Por favor, tente novamente.');
+    } finally {
+      submitButton.disabled = false;
+      submitButton.innerHTML = '<span>Enviar com carinho</span><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></svg>';
+    }
+  });
+</script>

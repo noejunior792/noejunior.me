@@ -3,6 +3,7 @@ import '@fontsource/inter';
 import ThemeToggle from '../components/ThemeToggle.astro';
 import Navigation from '../components/Navigation.astro';
 import { ViewTransitions } from 'astro:transitions';
+import { SonnerToast } from '../components/SonnerToast.jsx';
 
 interface Props {
   title: string;
@@ -52,6 +53,7 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
     <footer class="text-center py-4 mt-8">
       <p>&copy; 2025 Noé Júnior. Todos os direitos reservados.</p>
     </footer>
+    <SonnerToast client:load />
   </body>
 </html>
 

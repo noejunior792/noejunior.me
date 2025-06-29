@@ -8,6 +8,7 @@ export default defineConfig({
     mdx(),
     tailwind(),
     react(),
+    node({ mode: 'standalone' }),
   ],
   markdown: {
     shikiConfig: {
