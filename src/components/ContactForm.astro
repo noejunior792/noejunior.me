@@ -1,9 +1,21 @@
 ---
 ---
-<section class="space-y-4 p-4 border border-gray-200 dark:border-gray-800 rounded-lg">
-  <h2 class="text-xl font-semibold">Mensagem anônima</h2>
+<section class="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg transition-all duration-300">
+  <h2 class="text-2xl font-bold text-center text-gray-800 dark:text-white mb-4">Deixe um recadinho ❤️</h2>
   <form class="space-y-4">
-    <textarea class="w-full p-2 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4" placeholder="Escreva sua mensagem aqui. Será um prazer ler."></textarea>
-    <button type="submit" class="px-4 py-2 font-bold text-gray-800 bg-gray-200 rounded-md hover:bg-gray-300 dark:text-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600">Enviar</button>
+    <textarea 
+      class="w-full p-4 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-pink-300 dark:focus:ring-pink-500 transition-all duration-300" 
+      rows="5" 
+      placeholder="Sinta-se à vontade para escrever o que quiser..."
+    ></textarea>
+    <button 
+      type="submit" 
+      class="w-full px-6 py-3 font-bold text-white bg-gradient-to-r from-pink-500 to-yellow-500 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
+    >
+      <span>Enviar com carinho</span>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+      </svg>
+    </button>
   </form>
 </section>

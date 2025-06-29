@@ -15,7 +15,30 @@ import ContactForm from "../components/ContactForm.astro";
       </p>
       <SocialLinks />
     </section>
-    <ContactForm />
+    <section id="secret-form-section" class="text-center py-8">
+      <p class="mb-4 text-lg">Alerta: botão vermelho, não clicar!</p>
+      <button id="reveal-button" class="px-6 py-3 bg-red-600 text-white font-bold rounded-lg shadow-lg hover:bg-red-700 transition-all duration-300 transform hover:scale-105">
+        Não clique aqui
+      </button>
+    </section>
+
+    <div id="contact-form-wrapper" class="hidden opacity-0 transition-opacity duration-1000">
+      <ContactForm />
+    </div>
+
+<script>
+  const revealButton = document.getElementById('reveal-button');
+  const secretSection = document.getElementById('secret-form-section');
+  const formWrapper = document.getElementById('contact-form-wrapper');
+
+  revealButton.addEventListener('click', () => {
+    secretSection.style.display = 'none';
+    formWrapper.classList.remove('hidden');
+    setTimeout(() => {
+      formWrapper.classList.remove('opacity-0');
+    }, 100);
+  });
+</script>
 
 
 
