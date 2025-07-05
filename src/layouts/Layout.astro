@@ -4,6 +4,7 @@ import ThemeToggle from '../components/ThemeToggle.astro';
 import Navigation from '../components/Navigation.astro';
 import { ViewTransitions } from 'astro:transitions';
 import { SonnerToast } from '../components/SonnerToast.jsx';
+import ContactForm from '../components/ContactForm.astro';
 
 interface Props {
   title: string;
@@ -24,6 +25,7 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
     <link rel="icon" type="image" href="/favicon.jpg" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    <script src="/src/utils/theme-manager.js"></script>
     <ViewTransitions />
 
     <!-- Open Graph / Facebook -->
@@ -49,6 +51,14 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
       <main>
         <slot />
       </main>
+      <div id="contact-form-container" class="fixed bottom-4 right-4 z-50">
+        <button id="toggle-contact-form" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full shadow-lg">
+          Contactar
+        </button>
+        <div id="contact-form-wrapper" class="hidden">
+          <ContactForm client:load />
+        </div>
+      </div>
     </div>
     <footer class="text-center py-4 mt-8">
       <p>&copy; 2025 Noé Júnior. Todos os direitos reservados.</p>
@@ -56,6 +66,25 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
     <SonnerToast client:load />
   </body>
 </html>
+
+<script>
+  import { isContactFormOpen } from '../stores/contactForm';
+
+  const toggleButton = document.getElementById('toggle-contact-form');
+  const formWrapper = document.getElementById('contact-form-wrapper');
+
+  isContactFormOpen.subscribe(isOpen => {
+    if (isOpen) {
+      formWrapper.classList.remove('hidden');
+    } else {
+      formWrapper.classList.add('hidden');
+    }
+  });
+
+  toggleButton?.addEventListener('click', () => {
+    isContactFormOpen.set(!isContactFormOpen.get());
+  });
+</script>
 
 <style is:global>
   :root {

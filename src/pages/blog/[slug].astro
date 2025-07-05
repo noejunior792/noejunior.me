@@ -3,6 +3,8 @@ import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import { format } from 'date-fns';
 
+export const prerender = true;
+
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
   return posts.map(post => ({
