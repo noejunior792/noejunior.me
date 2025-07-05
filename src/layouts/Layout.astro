@@ -67,7 +67,7 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
   </body>
 </html>
 
-<script>
+<script client:only="astro">
   import { isContactFormOpen } from '../stores/contactForm';
 
   const toggleButton = document.getElementById('toggle-contact-form');
