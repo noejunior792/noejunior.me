@@ -25,7 +25,7 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
     <link rel="icon" type="image" href="/favicon.jpg" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
-    <script src="/src/utils/theme-manager.js"></script>
+    
     <ViewTransitions />
 
     <!-- Open Graph / Facebook -->
@@ -56,7 +56,7 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
           Contactar
         </button>
         <div id="contact-form-wrapper" class="hidden">
-          <ContactForm client:load />
+          <ContactForm />
         </div>
       </div>
     </div>
