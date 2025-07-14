@@ -26,6 +26,16 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     
+    <!-- Tema aplicado instantaneamente para evitar flash -->
+    <script is:inline>
+      (function() {
+        const theme = localStorage.getItem('theme');
+        if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+    
     <ViewTransitions />
 
     <!-- Open Graph / Facebook -->
@@ -64,115 +74,195 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
       <p>&copy; 2025 Noé Júnior. Todos os direitos reservados.</p>
     </footer>
     <SonnerToast client:load />
-    <script type="module" src="/global.js"></script>
+    
+    <!-- Script simplificado para gerenciar funcionalidades -->
     <script is:inline>
-      // Global state management
-      window.contactFormState = {
-        isOpen: false,
-        initialized: false
+      // Estado global simples
+      window.appState = {
+        contactFormOpen: false,
+        currentTheme: localStorage.getItem('theme') || 'light'
       };
 
-      function initializeContactForm() {
-        const toggleButton = document.getElementById('toggle-contact-form');
+      // Funções de inicialização
+      function initContactForm() {
+        const toggleBtn = document.getElementById('toggle-contact-form');
         const formWrapper = document.getElementById('contact-form-wrapper');
         
-        if (!toggleButton || !formWrapper) {
-          console.log('Contact form elements not found');
-          return;
-        }
-
-        // Remove existing listeners to prevent duplicates
-        const newToggleButton = toggleButton.cloneNode(true);
-        toggleButton.parentNode.replaceChild(newToggleButton, toggleButton);
+        if (!toggleBtn || !formWrapper) return;
+        
+        // Remove listeners antigos
+        const newBtn = toggleBtn.cloneNode(true);
+        toggleBtn.parentNode.replaceChild(newBtn, toggleBtn);
         
         function updateUI() {
-          const currentFormWrapper = document.getElementById('contact-form-wrapper');
-          const currentToggleButton = document.getElementById('toggle-contact-form');
+          const btn = document.getElementById('toggle-contact-form');
+          const wrapper = document.getElementById('contact-form-wrapper');
+          if (!btn || !wrapper) return;
           
-          if (!currentFormWrapper || !currentToggleButton) return;
-          
-          if (window.contactFormState.isOpen) {
-            currentFormWrapper.classList.remove('hidden');
-            currentToggleButton.textContent = 'Fechar';
-            currentToggleButton.classList.add('bg-red-500', 'hover:bg-red-600');
-            currentToggleButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+          if (window.appState.contactFormOpen) {
+            wrapper.classList.remove('hidden');
+            btn.textContent = 'Fechar';
+            btn.className = btn.className.replace('bg-blue-500 hover:bg-blue-600', 'bg-red-500 hover:bg-red-600');
           } else {
-            currentFormWrapper.classList.add('hidden');
-            currentToggleButton.textContent = 'Contactar';
-            currentToggleButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
-            currentToggleButton.classList.remove('bg-red-500', 'hover:bg-red-600');
+            wrapper.classList.add('hidden');
+            btn.textContent = 'Contactar';
+            btn.className = btn.className.replace('bg-red-500 hover:bg-red-600', 'bg-blue-500 hover:bg-blue-600');
           }
         }
         
-        newToggleButton.addEventListener('click', (e) => {
+        newBtn.addEventListener('click', (e) => {
           e.preventDefault();
-          window.contactFormState.isOpen = !window.contactFormState.isOpen;
+          window.appState.contactFormOpen = !window.appState.contactFormOpen;
           updateUI();
         });
         
-        // Initialize UI
         updateUI();
-        window.contactFormState.initialized = true;
-        
-        console.log('Contact form initialized');
       }
 
-      function initializeTheme() {
-        const toggleButton = document.getElementById('theme-toggle');
-        if (!toggleButton) return;
-
-        // Remove existing listeners
-        const newToggleButton = toggleButton.cloneNode(true);
-        toggleButton.parentNode.replaceChild(newToggleButton, toggleButton);
-
-        let currentTheme = localStorage.getItem('theme');
-        if (!currentTheme) {
-          currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-          localStorage.setItem('theme', currentTheme);
+      function initTheme() {
+        const themeBtn = document.getElementById('theme-toggle');
+        if (!themeBtn) return;
+        
+        // Remove listeners antigos
+        const newBtn = themeBtn.cloneNode(true);
+        themeBtn.parentNode.replaceChild(newBtn, themeBtn);
+        
+        // Sincronizar com estado atual
+        window.appState.currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+        
+        function updateIcons() {
+          const sunIcon = document.getElementById('sun-icon');
+          const moonIcon = document.getElementById('moon-icon');
+          if (!sunIcon || !moonIcon) return;
+          
+          if (window.appState.currentTheme === 'dark') {
+            sunIcon.classList.add('hidden');
+            moonIcon.classList.remove('hidden');
+          } else {
+            sunIcon.classList.remove('hidden');
+            moonIcon.classList.add('hidden');
+          }
         }
-
-        function applyTheme(theme) {
-          if (theme === 'dark') {
+        
+        function toggleTheme() {
+          window.appState.currentTheme = window.appState.currentTheme === 'dark' ? 'light' : 'dark';
+          localStorage.setItem('theme', window.appState.currentTheme);
+          
+          if (window.appState.currentTheme === 'dark') {
             document.documentElement.classList.add('dark');
           } else {
             document.documentElement.classList.remove('dark');
           }
-          localStorage.setItem('theme', theme);
+          
+          updateIcons();
         }
+        
+        newBtn.addEventListener('click', toggleTheme);
+        updateIcons();
+      }
 
-        applyTheme(currentTheme);
-
-        newToggleButton.addEventListener('click', () => {
-          currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-          applyTheme(currentTheme);
+      function initMessageForm() {
+        const form = document.getElementById('anonymous-message-form');
+        const textarea = document.getElementById('message-textarea');
+        const submitBtn = document.getElementById('submit-button');
+        const charCount = document.getElementById('char-count');
+        
+        if (!form || !textarea || !submitBtn || !charCount) return;
+        
+        // Remove listeners antigos
+        const newForm = form.cloneNode(true);
+        const newTextarea = newForm.querySelector('#message-textarea');
+        const newSubmitBtn = newForm.querySelector('#submit-button');
+        const newCharCount = newForm.querySelector('#char-count');
+        
+        form.parentNode.replaceChild(newForm, form);
+        
+        function updateCharCount() {
+          const count = newTextarea.value.length;
+          newCharCount.textContent = count.toString();
+          
+          if (count > 450) {
+            newCharCount.classList.add('text-red-500');
+          } else {
+            newCharCount.classList.remove('text-red-500');
+          }
+        }
+        
+        newTextarea.addEventListener('input', updateCharCount);
+        
+        newForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          
+          const message = newTextarea.value.trim();
+          if (!message) {
+            alert('Por favor, escreva uma mensagem antes de enviar.');
+            return;
+          }
+          if (message.length > 500) {
+            alert('Mensagem muito longa. Máximo 500 caracteres.');
+            return;
+          }
+          
+          newSubmitBtn.disabled = true;
+          newSubmitBtn.innerHTML = '<span class="animate-pulse">Enviando...</span>';
+          
+          try {
+            const response = await fetch('/api/send-message', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ message }),
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+              alert(data.message || 'Mensagem enviada com sucesso!');
+              newTextarea.value = '';
+              updateCharCount();
+              
+              // Fechar formulário
+              window.appState.contactFormOpen = false;
+              const wrapper = document.getElementById('contact-form-wrapper');
+              const btn = document.getElementById('toggle-contact-form');
+              if (wrapper && btn) {
+                wrapper.classList.add('hidden');
+                btn.textContent = 'Contactar';
+                btn.className = btn.className.replace('bg-red-500 hover:bg-red-600', 'bg-blue-500 hover:bg-blue-600');
+              }
+            } else {
+              alert(data.message || 'Erro ao enviar mensagem.');
+            }
+          } catch (error) {
+            alert('Erro de rede. Por favor, tente novamente.');
+          } finally {
+            newSubmitBtn.disabled = false;
+            newSubmitBtn.innerHTML = '<span>Enviar com carinho</span><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></path></svg>';
+          }
         });
-
-        console.log('Theme initialized:', currentTheme);
+        
+        updateCharCount();
       }
 
-      function initializeAll() {
-        console.log('Initializing all components...');
-        initializeContactForm();
-        initializeTheme();
+      function initAll() {
+        initContactForm();
+        initTheme();
+        initMessageForm();
       }
 
-      // Initialize on DOM ready
+      // Inicializar
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeAll);
+        document.addEventListener('DOMContentLoaded', initAll);
       } else {
-        initializeAll();
+        initAll();
       }
 
-      // Re-initialize on Astro page transitions
+      // Re-inicializar após transições do Astro
       document.addEventListener('astro:after-swap', () => {
-        console.log('Astro page transition detected, re-initializing...');
-        setTimeout(initializeAll, 100); // Small delay to ensure DOM is ready
+        setTimeout(initAll, 100);
       });
 
-      // Also listen for page load events
       document.addEventListener('astro:page-load', () => {
-        console.log('Astro page load detected, re-initializing...');
-        setTimeout(initializeAll, 100);
+        setTimeout(initAll, 100);
       });
     </script>
   </body>
