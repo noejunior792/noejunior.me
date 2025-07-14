@@ -6,14 +6,19 @@
   <form id="anonymous-message-form" class="space-y-3">
     <textarea 
       id="message-textarea"
-      class="w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-pink-300 dark:focus:ring-pink-500 transition-all duration-300 text-sm" 
+      class="w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-pink-300 dark:focus:ring-pink-500 transition-all duration-300 text-sm resize-none" 
       rows="4" 
       placeholder="Sinta-se à vontade para escrever o que quiser..."
+      maxlength="500"
+      required
     ></textarea>
+    <div class="text-xs text-gray-500 dark:text-gray-400 text-right">
+      <span id="char-count">0</span>/500
+    </div>
     <button 
       id="submit-button"
       type="submit" 
-      class="w-full px-4 py-2 font-bold text-gray-800 bg-gray-200 rounded-xl shadow-md hover:bg-gray-300 dark:text-gray-700 dark:hover:bg-gray-600 transition-all duration-300 flex items-center justify-center gap-2 text-sm"
+      class="w-full px-4 py-2 font-bold text-gray-800 bg-gray-200 rounded-xl shadow-md hover:bg-gray-300 dark:text-gray-700 dark:hover:bg-gray-600 transition-all duration-300 flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <span>Enviar com carinho</span>
       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -24,22 +29,44 @@
 </section>
 
 <script>
-  import { toast } from 'sonner';
-
-  document.addEventListener('astro:after-swap', () => {
+  function initContactForm() {
     const form = document.getElementById('anonymous-message-form');
     const messageTextarea = document.getElementById('message-textarea');
     const submitButton = document.getElementById('submit-button');
+    const charCount = document.getElementById('char-count');
 
-    if (!form || !messageTextarea || !submitButton) return;
+    if (!form || !messageTextarea || !submitButton || !charCount) return;
 
+    // Character counter
+    function updateCharCount() {
+      const count = messageTextarea.value.length;
+      charCount.textContent = count;
+      
+      if (count > 450) {
+        charCount.classList.add('text-red-500');
+        charCount.classList.remove('text-gray-500', 'dark:text-gray-400');
+      } else {
+        charCount.classList.remove('text-red-500');
+        charCount.classList.add('text-gray-500', 'dark:text-gray-400');
+      }
+    }
+
+    messageTextarea.addEventListener('input', updateCharCount);
+    updateCharCount(); // Initial count
+
+    // Form submission
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const message = messageTextarea.value.trim();
 
       if (!message) {
-        toast.error('Por favor, escreva uma mensagem antes de enviar.');
+        showNotification('Por favor, escreva uma mensagem antes de enviar.', 'error');
+        return;
+      }
+
+      if (message.length > 500) {
+        showNotification('Mensagem muito longa. Máximo 500 caracteres.', 'error');
         return;
       }
 
@@ -58,19 +85,45 @@
         const data = await response.json();
 
         if (response.ok) {
-          toast.success(data.message || 'Mensagem enviada com sucesso!');
-          messageTextarea.value = ''; // Clear the textarea
+          showNotification(data.message || 'Mensagem enviada com sucesso!', 'success');
+          messageTextarea.value = '';
+          updateCharCount();
+          
+          // Close contact form after successful submission
+          if (typeof window !== 'undefined' && window.isContactFormOpen) {
+            window.isContactFormOpen.set(false);
+          }
         } else {
-          toast.error(data.message || 'Erro ao enviar mensagem.');
+          showNotification(data.message || 'Erro ao enviar mensagem.', 'error');
         }
       } catch (error) {
         console.error('Erro de rede:', error);
-        toast.error('Erro de rede. Por favor, tente novamente.');
+        showNotification('Erro de rede. Por favor, tente novamente.', 'error');
       } finally {
         submitButton.disabled = false;
         submitButton.innerHTML = '<span>Enviar com carinho</span><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></svg>';
       }
     });
-  });
-</script>
+  }
 
+  // Simple notification function (fallback if toast is not available)
+  function showNotification(message, type) {
+    // Try to use Sonner toast if available
+    if (typeof window !== 'undefined' && window.toast) {
+      if (type === 'success') {
+        window.toast.success(message);
+      } else {
+        window.toast.error(message);
+      }
+    } else {
+      // Fallback to alert
+      alert(message);
+    }
+  }
+
+  // Initialize on DOM content loaded
+  document.addEventListener('DOMContentLoaded', initContactForm);
+
+  // Re-initialize on Astro page transitions
+  document.addEventListener('astro:after-swap', initContactForm);
+</script>

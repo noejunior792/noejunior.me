@@ -52,10 +52,10 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
         <slot />
       </main>
       <div id="contact-form-container" class="fixed bottom-4 right-4 z-50">
-        <button id="toggle-contact-form" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full shadow-lg">
+        <button id="toggle-contact-form" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105">
           Contactar
         </button>
-        <div id="contact-form-wrapper" class="hidden">
+        <div id="contact-form-wrapper" class="hidden fixed bottom-16 right-4 z-50">
           <ContactForm />
         </div>
       </div>
@@ -64,6 +64,14 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
       <p>&copy; 2025 Noé Júnior. Todos os direitos reservados.</p>
     </footer>
     <SonnerToast client:load />
+    <script is:inline>
+      // Make toast available globally for components
+      window.addEventListener('DOMContentLoaded', () => {
+        if (window.toast) {
+          window.toast = window.toast;
+        }
+      });
+    </script>
     <script type="module" src="../scripts/main.js" is:inline data-astro-rerun></script>
   </body>
 </html>
