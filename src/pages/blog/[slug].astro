@@ -3,6 +3,8 @@ import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import { format } from 'date-fns';
 
+export const prerender = true;
+
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
   return posts.map(post => ({
@@ -18,6 +20,9 @@ const { Content } = await post.render();
 <Layout title={post.data.title}>
   <article class="max-w-3xl mx-auto prose prose-lg dark:prose-invert">
     <header class="mb-8">
+      {post.data.image && (
+        <img src={post.data.image} alt={post.data.title} class="w-full h-auto rounded-lg mb-8" loading="lazy" />
+      )}
       <h1 class="text-4xl font-bold mb-2">{post.data.title}</h1>
       <div class="text-gray-600 dark:text-gray-400">
         <time datetime={post.data.publishDate.toISOString()}>
