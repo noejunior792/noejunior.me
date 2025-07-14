@@ -4,10 +4,10 @@
 <section class="p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-xl transition-all duration-300 max-w-sm mx-auto">
   <h2 class="text-xl font-bold text-center text-gray-800 dark:text-white mb-3">Deixe um recadinho ❤️</h2>
   <form id="anonymous-message-form" class="space-y-3">
-    <textarea 
+    <textarea
       id="message-textarea"
-      class="w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-pink-300 dark:focus:ring-pink-500 transition-all duration-300 text-sm resize-none" 
-      rows="4" 
+      class="w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-pink-300 dark:focus:ring-pink-500 transition-all duration-300 text-sm resize-none"
+      rows="4"
       placeholder="Sinta-se à vontade para escrever o que quiser..."
       maxlength="500"
       required
@@ -15,9 +15,9 @@
     <div class="text-xs text-gray-500 dark:text-gray-400 text-right">
       <span id="char-count">0</span>/500
     </div>
-    <button 
+    <button
       id="submit-button"
-      type="submit" 
+      type="submit"
       class="w-full px-4 py-2 font-bold text-gray-800 bg-gray-200 rounded-xl shadow-md hover:bg-gray-300 dark:text-gray-700 dark:hover:bg-gray-600 transition-all duration-300 flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <span>Enviar com carinho</span>
@@ -35,13 +35,16 @@
     const submitButton = document.getElementById('submit-button');
     const charCount = document.getElementById('char-count');
 
-    if (!form || !messageTextarea || !submitButton || !charCount) return;
+    if (!form || !messageTextarea || !submitButton || !charCount) {
+      console.log('Contact form elements not found');
+      return;
+    }
 
     // Character counter
     function updateCharCount() {
-      const count = messageTextarea.value.length;
-      charCount.textContent = count;
-      
+      const count = (messageTextarea as HTMLTextAreaElement).value.length;
+      charCount.textContent = count.toString();
+
       if (count > 450) {
         charCount.classList.add('text-red-500');
         charCount.classList.remove('text-gray-500', 'dark:text-gray-400');
@@ -58,19 +61,19 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const message = messageTextarea.value.trim();
+      const message = (messageTextarea as HTMLTextAreaElement).value.trim();
 
       if (!message) {
-        showNotification('Por favor, escreva uma mensagem antes de enviar.', 'error');
+        alert('Por favor, escreva uma mensagem antes de enviar.');
         return;
       }
 
       if (message.length > 500) {
-        showNotification('Mensagem muito longa. Máximo 500 caracteres.', 'error');
+        alert('Mensagem muito longa. Máximo 500 caracteres.');
         return;
       }
 
-      submitButton.disabled = true;
+      (submitButton as HTMLButtonElement).disabled = true;
       submitButton.innerHTML = '<span class="animate-pulse">Enviando...</span>';
 
       try {
@@ -85,44 +88,38 @@
         const data = await response.json();
 
         if (response.ok) {
-          showNotification(data.message || 'Mensagem enviada com sucesso!', 'success');
-          messageTextarea.value = '';
+          alert(data.message || 'Mensagem enviada com sucesso!');
+          (messageTextarea as HTMLTextAreaElement).value = '';
           updateCharCount();
-          
+
           // Close contact form after successful submission
-          if (typeof window !== 'undefined' && window.isContactFormOpen) {
-            window.isContactFormOpen.set(false);
+          const formWrapper = document.getElementById('contact-form-wrapper');
+          const toggleButton = document.getElementById('toggle-contact-form');
+          if (formWrapper && toggleButton) {
+            formWrapper.classList.add('hidden');
+            toggleButton.textContent = 'Contactar';
+            toggleButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
+            toggleButton.classList.remove('bg-red-500', 'hover:bg-red-600');
           }
         } else {
-          showNotification(data.message || 'Erro ao enviar mensagem.', 'error');
+          alert(data.message || 'Erro ao enviar mensagem.');
         }
       } catch (error) {
         console.error('Erro de rede:', error);
-        showNotification('Erro de rede. Por favor, tente novamente.', 'error');
+        alert('Erro de rede. Por favor, tente novamente.');
       } finally {
-        submitButton.disabled = false;
-        submitButton.innerHTML = '<span>Enviar com carinho</span><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></svg>';
+        (submitButton as HTMLButtonElement).disabled = false;
+        submitButton.innerHTML = '<span>Enviar com carinho</span><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></path></svg>';
       }
     });
   }
 
-  // Simple notification function (fallback if toast is not available)
-  function showNotification(message, type) {
-    // Try to use Sonner toast if available
-    if (typeof window !== 'undefined' && window.toast) {
-      if (type === 'success') {
-        window.toast.success(message);
-      } else {
-        window.toast.error(message);
-      }
-    } else {
-      // Fallback to alert
-      alert(message);
-    }
-  }
-
   // Initialize on DOM content loaded
-  document.addEventListener('DOMContentLoaded', initContactForm);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initContactForm);
+  } else {
+    initContactForm();
+  }
 
   // Re-initialize on Astro page transitions
   document.addEventListener('astro:after-swap', initContactForm);

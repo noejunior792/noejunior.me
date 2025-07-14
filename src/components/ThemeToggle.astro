@@ -38,63 +38,52 @@
   </svg>
 </button>
 
-<script>
-  import { theme } from '../stores/theme';
-
-  function initThemeToggle() {
+<script is:inline>
+  function initTheme() {
     const toggleButton = document.getElementById('theme-toggle');
     const sunIcon = document.getElementById('sun-icon');
     const moonIcon = document.getElementById('moon-icon');
 
     if (!toggleButton || !sunIcon || !moonIcon) return;
 
-    // Function to update icons based on current theme
-    function updateIcons(currentTheme) {
-      if (currentTheme === 'dark') {
-        sunIcon.classList.add('hidden');
-        moonIcon.classList.remove('hidden');
-      } else {
-        sunIcon.classList.remove('hidden');
-        moonIcon.classList.add('hidden');
-      }
-    }
-
-    // Initialize theme from localStorage or system preference
+    // Get initial theme
     let currentTheme = localStorage.getItem('theme');
     if (!currentTheme) {
       currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      localStorage.setItem('theme', currentTheme);
     }
-    
-    theme.set(currentTheme);
-    updateIcons(currentTheme);
 
-    // Apply theme to document
-    function applyTheme(themeValue) {
-      if (themeValue === 'dark') {
+    // Apply theme
+    function applyTheme(theme) {
+      if (theme === 'dark') {
         document.documentElement.classList.add('dark');
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
       } else {
         document.documentElement.classList.remove('dark');
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
       }
-      localStorage.setItem('theme', themeValue);
-      updateIcons(themeValue);
+      localStorage.setItem('theme', theme);
     }
 
     // Initial theme application
     applyTheme(currentTheme);
 
-    // Subscribe to theme changes
-    theme.subscribe(applyTheme);
-
     // Toggle theme on button click
     toggleButton.addEventListener('click', () => {
-      const newTheme = theme.get() === 'dark' ? 'light' : 'dark';
-      theme.set(newTheme);
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      applyTheme(currentTheme);
     });
   }
 
   // Initialize on page load
-  document.addEventListener('DOMContentLoaded', initThemeToggle);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTheme);
+  } else {
+    initTheme();
+  }
 
   // Re-initialize on Astro page transitions
-  document.addEventListener('astro:after-swap', initThemeToggle);
+  document.addEventListener('astro:after-swap', initTheme);
 </script>

@@ -1,0 +1,252 @@
+---
+---
+
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Formulário de Contato</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-200">
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center mb-8">Teste - Formulário de Contato</h1>
+        
+        <!-- Theme Toggle -->
+        <div class="mb-8 text-center">
+            <button
+                id="theme-toggle"
+                class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
+            >
+                <span id="sun-icon">☀️</span>
+                <span id="moon-icon" class="hidden">🌙</span>
+                Toggle Theme
+            </button>
+        </div>
+
+        <!-- Contact Form Toggle -->
+        <div class="mb-8 text-center">
+            <button 
+                id="toggle-contact-form" 
+                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-all duration-300"
+            >
+                Contactar
+            </button>
+        </div>
+
+        <!-- Contact Form -->
+        <div id="contact-form-wrapper" class="hidden max-w-sm mx-auto">
+            <section class="p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-xl transition-all duration-300">
+                <h2 class="text-xl font-bold text-center text-gray-800 dark:text-white mb-3">Deixe um recadinho ❤️</h2>
+                <form id="anonymous-message-form" class="space-y-3">
+                    <textarea 
+                        id="message-textarea"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-4 focus:ring-pink-300 dark:focus:ring-pink-500 transition-all duration-300 text-sm resize-none" 
+                        rows="4" 
+                        placeholder="Sinta-se à vontade para escrever o que quiser..."
+                        maxlength="500"
+                        required
+                    ></textarea>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 text-right">
+                        <span id="char-count">0</span>/500
+                    </div>
+                    <button 
+                        id="submit-button"
+                        type="submit" 
+                        class="w-full px-4 py-2 font-bold text-gray-800 bg-gray-200 rounded-xl shadow-md hover:bg-gray-300 dark:text-gray-700 dark:hover:bg-gray-600 transition-all duration-300 flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <span>Enviar com carinho</span>
+                        <span>❤️</span>
+                    </button>
+                </form>
+            </section>
+        </div>
+
+        <!-- Status -->
+        <div class="mt-8 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+            <h3 class="font-bold mb-2">Status:</h3>
+            <div id="status-log" class="text-sm space-y-1">
+                <div>Página carregada</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Logging function
+        function log(message) {
+            const statusLog = document.getElementById('status-log');
+            const div = document.createElement('div');
+            div.textContent = new Date().toLocaleTimeString() + ' - ' + message;
+            statusLog.appendChild(div);
+        }
+
+        // Theme functionality
+        function initTheme() {
+            const toggleButton = document.getElementById('theme-toggle');
+            const sunIcon = document.getElementById('sun-icon');
+            const moonIcon = document.getElementById('moon-icon');
+
+            if (!toggleButton || !sunIcon || !moonIcon) {
+                log('Theme elements not found');
+                return;
+            }
+
+            let currentTheme = localStorage.getItem('theme');
+            if (!currentTheme) {
+                currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                localStorage.setItem('theme', currentTheme);
+            }
+
+            function applyTheme(theme) {
+                if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    sunIcon.classList.add('hidden');
+                    moonIcon.classList.remove('hidden');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    sunIcon.classList.remove('hidden');
+                    moonIcon.classList.add('hidden');
+                }
+                localStorage.setItem('theme', theme);
+                log('Tema alterado para: ' + theme);
+            }
+
+            applyTheme(currentTheme);
+
+            toggleButton.addEventListener('click', () => {
+                currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                applyTheme(currentTheme);
+            });
+
+            log('Theme inicializado: ' + currentTheme);
+        }
+
+        // Contact form functionality
+        function initContactForm() {
+            const toggleButton = document.getElementById('toggle-contact-form');
+            const formWrapper = document.getElementById('contact-form-wrapper');
+            const form = document.getElementById('anonymous-message-form');
+            const messageTextarea = document.getElementById('message-textarea');
+            const charCount = document.getElementById('char-count');
+            const submitButton = document.getElementById('submit-button');
+
+            if (!toggleButton || !formWrapper) {
+                log('Contact form elements not found');
+                return;
+            }
+
+            let isOpen = false;
+
+            function updateUI() {
+                if (isOpen) {
+                    formWrapper.classList.remove('hidden');
+                    toggleButton.textContent = 'Fechar';
+                    toggleButton.classList.add('bg-red-500', 'hover:bg-red-600');
+                    toggleButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                    log('Formulário aberto');
+                } else {
+                    formWrapper.classList.add('hidden');
+                    toggleButton.textContent = 'Contactar';
+                    toggleButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                    toggleButton.classList.remove('bg-red-500', 'hover:bg-red-600');
+                    log('Formulário fechado');
+                }
+            }
+
+            toggleButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                isOpen = !isOpen;
+                updateUI();
+            });
+
+            // Character counter
+            if (messageTextarea && charCount) {
+                function updateCharCount() {
+                    const count = messageTextarea.value.length;
+                    charCount.textContent = count;
+                    
+                    if (count > 450) {
+                        charCount.classList.add('text-red-500');
+                    } else {
+                        charCount.classList.remove('text-red-500');
+                    }
+                }
+
+                messageTextarea.addEventListener('input', updateCharCount);
+                updateCharCount();
+            }
+
+            // Form submission
+            if (form && submitButton) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const message = messageTextarea.value.trim();
+                    
+                    if (!message) {
+                        alert('Por favor, escreva uma mensagem antes de enviar.');
+                        log('Erro: Mensagem vazia');
+                        return;
+                    }
+
+                    if (message.length > 500) {
+                        alert('Mensagem muito longa. Máximo 500 caracteres.');
+                        log('Erro: Mensagem muito longa');
+                        return;
+                    }
+
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<span class="animate-pulse">Enviando...</span>';
+                    log('Enviando mensagem...');
+
+                    try {
+                        const response = await fetch('/api/send-message', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ message }),
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            alert(data.message || 'Mensagem enviada com sucesso!');
+                            messageTextarea.value = '';
+                            if (charCount) charCount.textContent = '0';
+                            isOpen = false;
+                            updateUI();
+                            log('Mensagem enviada com sucesso');
+                        } else {
+                            alert(data.message || 'Erro ao enviar mensagem.');
+                            log('Erro no servidor: ' + (data.message || 'Erro desconhecido'));
+                        }
+                    } catch (error) {
+                        console.error('Erro de rede:', error);
+                        alert('Erro de rede. Por favor, tente novamente.');
+                        log('Erro de rede: ' + error.message);
+                    } finally {
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = '<span>Enviar com carinho</span><span>❤️</span>';
+                    }
+                });
+            }
+
+            updateUI();
+            log('Contact form inicializado');
+        }
+
+        // Initialize everything
+        document.addEventListener('DOMContentLoaded', () => {
+            log('DOM carregado');
+            initTheme();
+            initContactForm();
+        });
+    </script>
+</body>
+</html>

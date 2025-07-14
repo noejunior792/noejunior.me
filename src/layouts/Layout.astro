@@ -65,14 +65,43 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
     </footer>
     <SonnerToast client:load />
     <script is:inline>
-      // Make toast available globally for components
+      // Make stores and toast available globally
       window.addEventListener('DOMContentLoaded', () => {
-        if (window.toast) {
-          window.toast = window.toast;
-        }
+        // Initialize contact form functionality
+        initializeContactForm();
       });
+
+      function initializeContactForm() {
+        const toggleButton = document.getElementById('toggle-contact-form');
+        const formWrapper = document.getElementById('contact-form-wrapper');
+        
+        if (!toggleButton || !formWrapper) return;
+        
+        let isOpen = false;
+        
+        function updateUI() {
+          if (isOpen) {
+            formWrapper.classList.remove('hidden');
+            toggleButton.textContent = 'Fechar';
+            toggleButton.classList.add('bg-red-500', 'hover:bg-red-600');
+            toggleButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+          } else {
+            formWrapper.classList.add('hidden');
+            toggleButton.textContent = 'Contactar';
+            toggleButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
+            toggleButton.classList.remove('bg-red-500', 'hover:bg-red-600');
+          }
+        }
+        
+        toggleButton.addEventListener('click', (e) => {
+          e.preventDefault();
+          isOpen = !isOpen;
+          updateUI();
+        });
+        
+        updateUI();
+      }
     </script>
-    <script type="module" src="../scripts/main.js" is:inline data-astro-rerun></script>
   </body>
 </html>
 
