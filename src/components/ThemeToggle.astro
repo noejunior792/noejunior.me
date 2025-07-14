@@ -44,16 +44,15 @@
   function initThemeToggle() {
     const themeBtn = document.getElementById('theme-toggle');
     if (!themeBtn || themeBtn.dataset.initialized) return;
-    
-    // Get current theme from localStorage or DOM
-    let currentTheme = localStorage.getItem('theme') || 
+
+    let currentTheme = localStorage.getItem('theme') ||
       (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-    
+
     function updateIcons(theme: string) {
       const sunIcon = document.getElementById('sun-icon');
       const moonIcon = document.getElementById('moon-icon');
       if (!sunIcon || !moonIcon) return;
-      
+
       if (theme === 'dark') {
         sunIcon.classList.add('hidden');
         moonIcon.classList.remove('hidden');
@@ -62,16 +61,16 @@
         moonIcon.classList.add('hidden');
       }
     }
-    
+
     function toggleTheme() {
       const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
       setTheme(newTheme);
       updateIcons(newTheme);
-      
+
       // Update local reference
       currentTheme = newTheme;
     }
-    
+
     themeBtn.addEventListener('click', toggleTheme);
     themeBtn.dataset.initialized = 'true';
     updateIcons(currentTheme);

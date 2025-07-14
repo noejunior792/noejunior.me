@@ -162,92 +162,9 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
           (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
       }
 
-      function initMessageForm() {
-        const form = document.getElementById('anonymous-message-form');
-        const textarea = document.getElementById('message-textarea');
-        const submitBtn = document.getElementById('submit-button');
-        const charCount = document.getElementById('char-count');
-        
-        if (!form || !textarea || !submitBtn || !charCount) return;
-        
-        // Remove listeners antigos
-        const newForm = form.cloneNode(true);
-        const newTextarea = newForm.querySelector('#message-textarea');
-        const newSubmitBtn = newForm.querySelector('#submit-button');
-        const newCharCount = newForm.querySelector('#char-count');
-        
-        form.parentNode.replaceChild(newForm, form);
-        
-        function updateCharCount() {
-          const count = newTextarea.value.length;
-          newCharCount.textContent = count.toString();
-          
-          if (count > 450) {
-            newCharCount.classList.add('text-red-500');
-          } else {
-            newCharCount.classList.remove('text-red-500');
-          }
-        }
-        
-        newTextarea.addEventListener('input', updateCharCount);
-        
-        newForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          
-          const message = newTextarea.value.trim();
-          if (!message) {
-            alert('Por favor, escreva uma mensagem antes de enviar.');
-            return;
-          }
-          if (message.length > 500) {
-            alert('Mensagem muito longa. Máximo 500 caracteres.');
-            return;
-          }
-          
-          newSubmitBtn.disabled = true;
-          newSubmitBtn.innerHTML = '<span class="animate-pulse">Enviando...</span>';
-          
-          try {
-            const response = await fetch('/api/send-message', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ message }),
-            });
-            
-            const data = await response.json();
-            
-            if (response.ok) {
-              alert(data.message || 'Mensagem enviada com sucesso!');
-              newTextarea.value = '';
-              updateCharCount();
-              
-              // Fechar formulário
-              window.appState.contactFormOpen = false;
-              const wrapper = document.getElementById('contact-form-wrapper');
-              const btn = document.getElementById('toggle-contact-form');
-              if (wrapper && btn) {
-                wrapper.classList.add('hidden');
-                btn.textContent = 'Contactar';
-                btn.className = btn.className.replace('bg-red-500 hover:bg-red-600', 'bg-blue-500 hover:bg-blue-600');
-              }
-            } else {
-              alert(data.message || 'Erro ao enviar mensagem.');
-            }
-          } catch (error) {
-            alert('Erro de rede. Por favor, tente novamente.');
-          } finally {
-            newSubmitBtn.disabled = false;
-            newSubmitBtn.innerHTML = '<span>Enviar com carinho</span><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></path></svg>';
-          }
-        });
-        
-        updateCharCount();
-      }
-
       function initAll() {
         initContactForm();
         initTheme();
-        initMessageForm();
       }
 
       // Inicializar
