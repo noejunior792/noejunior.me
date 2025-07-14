@@ -27,3 +27,126 @@
     </button>
   </form>
 </section>
+
+<script>
+  async function sendToDiscordWebhook(message) {
+    try {
+      const webhookUrl = import.meta.env.PUBLIC_WEBHOOK_URL;
+
+      if (!webhookUrl) {
+        throw new Error('Webhook URL não configurado');
+      }
+
+      const messageData = {
+        embeds: [
+          {
+            title: 'Mensagem Anônima do Site noejunior.me',
+            color: 0x4983f5,
+            fields: [
+              {
+                name: 'Mensagem',
+                value: message,
+              },
+            ],
+            timestamp: new Date().toISOString(),
+          },
+        ],
+      };
+
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(messageData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  function initContactForm() {
+    const form = document.getElementById('anonymous-message-form');
+    const textarea = document.getElementById('message-textarea');
+    const submitBtn = document.getElementById('submit-button');
+    const charCount = document.getElementById('char-count');
+
+    if (!form || !textarea || !submitBtn || !charCount) return;
+
+    // Character count
+    function updateCharCount() {
+      const count = textarea.value.length;
+      charCount.textContent = count.toString();
+
+      if (count > 450) {
+        charCount.classList.add('text-red-500');
+      } else {
+        charCount.classList.remove('text-red-500');
+      }
+    }
+
+    textarea.addEventListener('input', updateCharCount);
+
+    // Form submission
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const message = textarea.value.trim();
+      if (!message) {
+        alert('Por favor, escreva uma mensagem antes de enviar.');
+        return;
+      }
+      if (message.length > 500) {
+        alert('Mensagem muito longa. Máximo 500 caracteres.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="animate-pulse">Enviando...</span>';
+
+      const result = await sendToDiscordWebhook(message);
+
+      if (result.success) {
+        alert('Mensagem enviada com sucesso! Envie mais uma, amo conversar com você!');
+        textarea.value = '';
+        updateCharCount();
+
+        // Fechar formulário
+        if (window.appState) {
+          window.appState.contactFormOpen = false;
+        }
+        const wrapper = document.getElementById('contact-form-wrapper');
+        const btn = document.getElementById('toggle-contact-form');
+        if (wrapper && btn) {
+          wrapper.classList.add('hidden');
+          btn.textContent = 'Contactar';
+          btn.className = btn.className.replace('bg-red-500 hover:bg-red-600', 'bg-blue-500 hover:bg-blue-600');
+        }
+      } else {
+        alert(`Erro ao enviar mensagem: ${result.error}`);
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<span>Enviar com carinho</span><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></path></svg>';
+    });
+
+    updateCharCount();
+  }
+
+  // Initialize
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initContactForm);
+  } else {
+    initContactForm();
+  }
+
+  // Re-initialize after Astro transitions
+  document.addEventListener('astro:after-swap', initContactForm);
+  document.addEventListener('astro:page-load', initContactForm);
+</script>

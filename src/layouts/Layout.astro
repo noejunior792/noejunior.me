@@ -29,14 +29,48 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
     <!-- Tema aplicado instantaneamente para evitar flash -->
     <script is:inline>
       (function() {
+        // Verificar se já foi inicializado para evitar conflitos em transições
+        if (window.themeInitialized) return;
+        
         const theme = localStorage.getItem('theme');
-        if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        if (theme === 'dark') {
           document.documentElement.classList.add('dark');
+        } else if (theme === 'light') {
+          document.documentElement.classList.remove('dark');
+        } else {
+          // Só usar preferência do sistema se não houver tema salvo
+          if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+          }
         }
+        
+        window.themeInitialized = true;
       })();
     </script>
     
     <ViewTransitions />
+    
+    <!-- Preserve theme during view transitions -->
+    <script is:inline>
+      document.addEventListener('astro:before-preparation', () => {
+        // Save current theme before transition
+        const currentTheme = localStorage.getItem('theme');
+        if (currentTheme) {
+          window.__preservedTheme = currentTheme;
+        }
+      });
+      
+      document.addEventListener('astro:before-swap', () => {
+        // Apply preserved theme before DOM swap
+        const preservedTheme = window.__preservedTheme || localStorage.getItem('theme');
+        if (preservedTheme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else if (preservedTheme === 'light') {
+          document.documentElement.classList.remove('dark');
+        }
+      });
+    </script>
+</ViewTransitions>
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
@@ -77,11 +111,13 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
     
     <!-- Script simplificado para gerenciar funcionalidades -->
     <script is:inline>
-      // Estado global simples
-      window.appState = {
-        contactFormOpen: false,
-        currentTheme: localStorage.getItem('theme') || 'light'
-      };
+      // Estado global simples - preservar estado existente
+      if (!window.appState) {
+        window.appState = {
+          contactFormOpen: false,
+          currentTheme: localStorage.getItem('theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light')
+        };
+      }
 
       // Funções de inicialização
       function initContactForm() {
@@ -120,133 +156,15 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
       }
 
       function initTheme() {
-        const themeBtn = document.getElementById('theme-toggle');
-        if (!themeBtn) return;
-        
-        // Remove listeners antigos
-        const newBtn = themeBtn.cloneNode(true);
-        themeBtn.parentNode.replaceChild(newBtn, themeBtn);
-        
-        // Sincronizar com estado atual
-        window.appState.currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-        
-        function updateIcons() {
-          const sunIcon = document.getElementById('sun-icon');
-          const moonIcon = document.getElementById('moon-icon');
-          if (!sunIcon || !moonIcon) return;
-          
-          if (window.appState.currentTheme === 'dark') {
-            sunIcon.classList.add('hidden');
-            moonIcon.classList.remove('hidden');
-          } else {
-            sunIcon.classList.remove('hidden');
-            moonIcon.classList.add('hidden');
-          }
-        }
-        
-        function toggleTheme() {
-          window.appState.currentTheme = window.appState.currentTheme === 'dark' ? 'light' : 'dark';
-          localStorage.setItem('theme', window.appState.currentTheme);
-          
-          if (window.appState.currentTheme === 'dark') {
-            document.documentElement.classList.add('dark');
-          } else {
-            document.documentElement.classList.remove('dark');
-          }
-          
-          updateIcons();
-        }
-        
-        newBtn.addEventListener('click', toggleTheme);
-        updateIcons();
-      }
-
-      function initMessageForm() {
-        const form = document.getElementById('anonymous-message-form');
-        const textarea = document.getElementById('message-textarea');
-        const submitBtn = document.getElementById('submit-button');
-        const charCount = document.getElementById('char-count');
-        
-        if (!form || !textarea || !submitBtn || !charCount) return;
-        
-        // Remove listeners antigos
-        const newForm = form.cloneNode(true);
-        const newTextarea = newForm.querySelector('#message-textarea');
-        const newSubmitBtn = newForm.querySelector('#submit-button');
-        const newCharCount = newForm.querySelector('#char-count');
-        
-        form.parentNode.replaceChild(newForm, form);
-        
-        function updateCharCount() {
-          const count = newTextarea.value.length;
-          newCharCount.textContent = count.toString();
-          
-          if (count > 450) {
-            newCharCount.classList.add('text-red-500');
-          } else {
-            newCharCount.classList.remove('text-red-500');
-          }
-        }
-        
-        newTextarea.addEventListener('input', updateCharCount);
-        
-        newForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          
-          const message = newTextarea.value.trim();
-          if (!message) {
-            alert('Por favor, escreva uma mensagem antes de enviar.');
-            return;
-          }
-          if (message.length > 500) {
-            alert('Mensagem muito longa. Máximo 500 caracteres.');
-            return;
-          }
-          
-          newSubmitBtn.disabled = true;
-          newSubmitBtn.innerHTML = '<span class="animate-pulse">Enviando...</span>';
-          
-          try {
-            const response = await fetch('/api/send-message', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ message }),
-            });
-            
-            const data = await response.json();
-            
-            if (response.ok) {
-              alert(data.message || 'Mensagem enviada com sucesso!');
-              newTextarea.value = '';
-              updateCharCount();
-              
-              // Fechar formulário
-              window.appState.contactFormOpen = false;
-              const wrapper = document.getElementById('contact-form-wrapper');
-              const btn = document.getElementById('toggle-contact-form');
-              if (wrapper && btn) {
-                wrapper.classList.add('hidden');
-                btn.textContent = 'Contactar';
-                btn.className = btn.className.replace('bg-red-500 hover:bg-red-600', 'bg-blue-500 hover:bg-blue-600');
-              }
-            } else {
-              alert(data.message || 'Erro ao enviar mensagem.');
-            }
-          } catch (error) {
-            alert('Erro de rede. Por favor, tente novamente.');
-          } finally {
-            newSubmitBtn.disabled = false;
-            newSubmitBtn.innerHTML = '<span>Enviar com carinho</span><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></path></svg>';
-          }
-        });
-        
-        updateCharCount();
+        // Theme is now handled by ThemeToggle component
+        // Just sync the state for any other components that might need it
+        window.appState.currentTheme = localStorage.getItem('theme') || 
+          (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
       }
 
       function initAll() {
         initContactForm();
         initTheme();
-        initMessageForm();
       }
 
       // Inicializar
@@ -256,13 +174,29 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
         initAll();
       }
 
-      // Re-inicializar após transições do Astro
+      // Re-inicializar após transições do Astro, preservando estado
       document.addEventListener('astro:after-swap', () => {
-        setTimeout(initAll, 100);
+        // Preservar tema durante transição
+        const currentTheme = localStorage.getItem('theme');
+        if (currentTheme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else if (currentTheme === 'light') {
+          document.documentElement.classList.remove('dark');
+        }
+        
+        setTimeout(initAll, 50);
       });
 
       document.addEventListener('astro:page-load', () => {
-        setTimeout(initAll, 100);
+        // Preservar tema durante carregamento
+        const currentTheme = localStorage.getItem('theme');
+        if (currentTheme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else if (currentTheme === 'light') {
+          document.documentElement.classList.remove('dark');
+        }
+        
+        setTimeout(initAll, 50);
       });
     </script>
   </body>

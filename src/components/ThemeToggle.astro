@@ -37,3 +37,53 @@
     />
   </svg>
 </button>
+
+<script>
+  import { setTheme } from '../stores/theme.ts';
+
+  function initThemeToggle() {
+    const themeBtn = document.getElementById('theme-toggle');
+    if (!themeBtn || themeBtn.dataset.initialized) return;
+
+    let currentTheme = localStorage.getItem('theme') ||
+      (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+
+    function updateIcons(theme: string) {
+      const sunIcon = document.getElementById('sun-icon');
+      const moonIcon = document.getElementById('moon-icon');
+      if (!sunIcon || !moonIcon) return;
+
+      if (theme === 'dark') {
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+      } else {
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
+      }
+    }
+
+    function toggleTheme() {
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      setTheme(newTheme);
+      updateIcons(newTheme);
+
+      // Update local reference
+      currentTheme = newTheme;
+    }
+
+    themeBtn.addEventListener('click', toggleTheme);
+    themeBtn.dataset.initialized = 'true';
+    updateIcons(currentTheme);
+  }
+
+  // Initialize on page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initThemeToggle);
+  } else {
+    initThemeToggle();
+  }
+
+  // Re-initialize after Astro transitions
+  document.addEventListener('astro:after-swap', initThemeToggle);
+  document.addEventListener('astro:page-load', initThemeToggle);
+</script>
