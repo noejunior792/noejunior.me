@@ -203,4 +203,14 @@ export const projects = [
     url: "https://njila.ao",
     status: "online",
   },
+  {
+    type: "empresa",
+    title: "Kiahenda",
+    description:
+      "Empresa focada em desenvolvimento de software onde trabalho como Software Developer.",
+    technologies: ["Nextjs", "PostgreSQL", "Javascript"],
+    logo: "/images/companies/kiahenda.png",
+    link: "https://kiahenda.ao",
+    period: "2025 - Atualmente",
+  },
 ];

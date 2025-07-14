@@ -1,7 +1,10 @@
 ---
-import '@fontsource/jetbrains-mono';
+import '@fontsource/inter';
 import ThemeToggle from '../components/ThemeToggle.astro';
 import Navigation from '../components/Navigation.astro';
+import { ViewTransitions } from 'astro:transitions';
+import { SonnerToast } from '../components/SonnerToast.jsx';
+import ContactForm from '../components/ContactForm.astro';
 
 interface Props {
   title: string;
@@ -22,6 +25,18 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
     <link rel="icon" type="image" href="/favicon.jpg" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    
+    <!-- Tema aplicado instantaneamente para evitar flash -->
+    <script is:inline>
+      (function() {
+        const theme = localStorage.getItem('theme');
+        if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+    
+    <ViewTransitions />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
@@ -37,8 +52,8 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
     <meta property="twitter:description" content={description} />
     <meta property="twitter:image" content={socialImage} />
   </head>
-  <body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-200">
-    <div class="max-w-4xl mx-auto px-4 py-8">
+  <body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-200 flex flex-col">
+    <div class="max-w-4xl mx-auto px-4 py-8 flex-grow w-full">
       <header class="flex justify-between items-center mb-8">
         <Navigation />
         <ThemeToggle />
@@ -46,7 +61,210 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
       <main>
         <slot />
       </main>
+      <div id="contact-form-container" class="fixed bottom-4 right-4 z-50">
+        <button id="toggle-contact-form" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105">
+          Contactar
+        </button>
+        <div id="contact-form-wrapper" class="hidden fixed bottom-16 right-4 z-50">
+          <ContactForm />
+        </div>
+      </div>
     </div>
+    <footer class="text-center py-4 mt-8">
+      <p>&copy; 2025 Noé Júnior. Todos os direitos reservados.</p>
+    </footer>
+    <SonnerToast client:load />
+    
+    <!-- Script simplificado para gerenciar funcionalidades -->
+    <script is:inline>
+      // Estado global simples
+      window.appState = {
+        contactFormOpen: false,
+        currentTheme: localStorage.getItem('theme') || 'light'
+      };
+
+      // Funções de inicialização
+      function initContactForm() {
+        const toggleBtn = document.getElementById('toggle-contact-form');
+        const formWrapper = document.getElementById('contact-form-wrapper');
+        
+        if (!toggleBtn || !formWrapper) return;
+        
+        // Remove listeners antigos
+        const newBtn = toggleBtn.cloneNode(true);
+        toggleBtn.parentNode.replaceChild(newBtn, toggleBtn);
+        
+        function updateUI() {
+          const btn = document.getElementById('toggle-contact-form');
+          const wrapper = document.getElementById('contact-form-wrapper');
+          if (!btn || !wrapper) return;
+          
+          if (window.appState.contactFormOpen) {
+            wrapper.classList.remove('hidden');
+            btn.textContent = 'Fechar';
+            btn.className = btn.className.replace('bg-blue-500 hover:bg-blue-600', 'bg-red-500 hover:bg-red-600');
+          } else {
+            wrapper.classList.add('hidden');
+            btn.textContent = 'Contactar';
+            btn.className = btn.className.replace('bg-red-500 hover:bg-red-600', 'bg-blue-500 hover:bg-blue-600');
+          }
+        }
+        
+        newBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          window.appState.contactFormOpen = !window.appState.contactFormOpen;
+          updateUI();
+        });
+        
+        updateUI();
+      }
+
+      function initTheme() {
+        const themeBtn = document.getElementById('theme-toggle');
+        if (!themeBtn) return;
+        
+        // Remove listeners antigos
+        const newBtn = themeBtn.cloneNode(true);
+        themeBtn.parentNode.replaceChild(newBtn, themeBtn);
+        
+        // Sincronizar com estado atual
+        window.appState.currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+        
+        function updateIcons() {
+          const sunIcon = document.getElementById('sun-icon');
+          const moonIcon = document.getElementById('moon-icon');
+          if (!sunIcon || !moonIcon) return;
+          
+          if (window.appState.currentTheme === 'dark') {
+            sunIcon.classList.add('hidden');
+            moonIcon.classList.remove('hidden');
+          } else {
+            sunIcon.classList.remove('hidden');
+            moonIcon.classList.add('hidden');
+          }
+        }
+        
+        function toggleTheme() {
+          window.appState.currentTheme = window.appState.currentTheme === 'dark' ? 'light' : 'dark';
+          localStorage.setItem('theme', window.appState.currentTheme);
+          
+          if (window.appState.currentTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+          
+          updateIcons();
+        }
+        
+        newBtn.addEventListener('click', toggleTheme);
+        updateIcons();
+      }
+
+      function initMessageForm() {
+        const form = document.getElementById('anonymous-message-form');
+        const textarea = document.getElementById('message-textarea');
+        const submitBtn = document.getElementById('submit-button');
+        const charCount = document.getElementById('char-count');
+        
+        if (!form || !textarea || !submitBtn || !charCount) return;
+        
+        // Remove listeners antigos
+        const newForm = form.cloneNode(true);
+        const newTextarea = newForm.querySelector('#message-textarea');
+        const newSubmitBtn = newForm.querySelector('#submit-button');
+        const newCharCount = newForm.querySelector('#char-count');
+        
+        form.parentNode.replaceChild(newForm, form);
+        
+        function updateCharCount() {
+          const count = newTextarea.value.length;
+          newCharCount.textContent = count.toString();
+          
+          if (count > 450) {
+            newCharCount.classList.add('text-red-500');
+          } else {
+            newCharCount.classList.remove('text-red-500');
+          }
+        }
+        
+        newTextarea.addEventListener('input', updateCharCount);
+        
+        newForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          
+          const message = newTextarea.value.trim();
+          if (!message) {
+            alert('Por favor, escreva uma mensagem antes de enviar.');
+            return;
+          }
+          if (message.length > 500) {
+            alert('Mensagem muito longa. Máximo 500 caracteres.');
+            return;
+          }
+          
+          newSubmitBtn.disabled = true;
+          newSubmitBtn.innerHTML = '<span class="animate-pulse">Enviando...</span>';
+          
+          try {
+            const response = await fetch('/api/send-message', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ message }),
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+              alert(data.message || 'Mensagem enviada com sucesso!');
+              newTextarea.value = '';
+              updateCharCount();
+              
+              // Fechar formulário
+              window.appState.contactFormOpen = false;
+              const wrapper = document.getElementById('contact-form-wrapper');
+              const btn = document.getElementById('toggle-contact-form');
+              if (wrapper && btn) {
+                wrapper.classList.add('hidden');
+                btn.textContent = 'Contactar';
+                btn.className = btn.className.replace('bg-red-500 hover:bg-red-600', 'bg-blue-500 hover:bg-blue-600');
+              }
+            } else {
+              alert(data.message || 'Erro ao enviar mensagem.');
+            }
+          } catch (error) {
+            alert('Erro de rede. Por favor, tente novamente.');
+          } finally {
+            newSubmitBtn.disabled = false;
+            newSubmitBtn.innerHTML = '<span>Enviar com carinho</span><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></path></svg>';
+          }
+        });
+        
+        updateCharCount();
+      }
+
+      function initAll() {
+        initContactForm();
+        initTheme();
+        initMessageForm();
+      }
+
+      // Inicializar
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAll);
+      } else {
+        initAll();
+      }
+
+      // Re-inicializar após transições do Astro
+      document.addEventListener('astro:after-swap', () => {
+        setTimeout(initAll, 100);
+      });
+
+      document.addEventListener('astro:page-load', () => {
+        setTimeout(initAll, 100);
+      });
+    </script>
   </body>
 </html>
 
@@ -63,7 +281,7 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
   }
 
   html {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Inter', sans-serif;
     font-size: var(--font-size-base);
   }
 
