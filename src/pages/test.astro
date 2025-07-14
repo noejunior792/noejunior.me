@@ -70,19 +70,41 @@
         <!-- Status -->
         <div class="mt-8 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
             <h3 class="font-bold mb-2">Status:</h3>
-            <div id="status-log" class="text-sm space-y-1">
+            <div id="status-log" class="text-sm space-y-1 max-h-60 overflow-y-auto">
                 <div>Página carregada</div>
             </div>
+        </div>
+
+        <!-- Navigation Test -->
+        <div class="mt-8 p-4 bg-blue-100 dark:bg-blue-800 rounded-lg">
+            <h3 class="font-bold mb-2">Teste de Transições:</h3>
+            <div class="space-x-2">
+                <a href="/" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">Home</a>
+                <a href="/projects" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">Projects</a>
+                <a href="/test" class="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600">Test</a>
+            </div>
+            <p class="text-sm mt-2">Use estes links para testar as transições do Astro</p>
         </div>
     </div>
 
     <script>
+        // Global state management
+        window.testPageState = window.testPageState || {
+            initialized: false,
+            initCount: 0
+        };
+
         // Logging function
         function log(message) {
             const statusLog = document.getElementById('status-log');
+            if (!statusLog) return;
+            
             const div = document.createElement('div');
             div.textContent = new Date().toLocaleTimeString() + ' - ' + message;
             statusLog.appendChild(div);
+            
+            // Auto-scroll to bottom
+            statusLog.scrollTop = statusLog.scrollHeight;
         }
 
         // Theme functionality
@@ -242,10 +264,58 @@
         }
 
         // Initialize everything
-        document.addEventListener('DOMContentLoaded', () => {
-            log('DOM carregado');
+        function initializeAll() {
+            window.testPageState.initCount++;
+            log(`Inicializando tudo (tentativa ${window.testPageState.initCount})`);
+            
             initTheme();
             initContactForm();
+            
+            window.testPageState.initialized = true;
+            log('Inicialização completa');
+        }
+
+        // Initialize on DOM ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeAll);
+        } else {
+            initializeAll();
+        }
+
+        // Listen for Astro transitions
+        document.addEventListener('astro:before-preparation', () => {
+            log('🔄 Astro: Preparando transição...');
+        });
+
+        document.addEventListener('astro:after-preparation', () => {
+            log('🔄 Astro: Preparação concluída');
+        });
+
+        document.addEventListener('astro:before-swap', () => {
+            log('🔄 Astro: Antes do swap...');
+        });
+
+        document.addEventListener('astro:after-swap', () => {
+            log('🔄 Astro: Após swap - re-inicializando...');
+            setTimeout(() => {
+                initializeAll();
+            }, 100);
+        });
+
+        document.addEventListener('astro:page-load', () => {
+            log('📄 Astro: Page load completo');
+            setTimeout(() => {
+                initializeAll();
+            }, 150);
+        });
+
+        // Additional debugging
+        window.addEventListener('beforeunload', () => {
+            log('🚪 Saindo da página...');
+        });
+
+        window.addEventListener('load', () => {
+            log('🎯 Window load event');
         });
     </script>
 </body>

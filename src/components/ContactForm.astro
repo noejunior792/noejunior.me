@@ -28,7 +28,13 @@
   </form>
 </section>
 
-<script>
+<script is:inline>
+  // Global form state management
+  window.contactFormData = window.contactFormData || {
+    formInitialized: false,
+    formListeners: new Set()
+  };
+
   function initContactForm() {
     const form = document.getElementById('anonymous-message-form');
     const messageTextarea = document.getElementById('message-textarea');
@@ -40,9 +46,13 @@
       return;
     }
 
+    // Clean up existing listeners
+    window.contactFormData.formListeners.forEach(cleanup => cleanup());
+    window.contactFormData.formListeners.clear();
+
     // Character counter
     function updateCharCount() {
-      const count = (messageTextarea as HTMLTextAreaElement).value.length;
+      const count = messageTextarea.value.length;
       charCount.textContent = count.toString();
 
       if (count > 450) {
@@ -54,14 +64,21 @@
       }
     }
 
-    messageTextarea.addEventListener('input', updateCharCount);
-    updateCharCount(); // Initial count
+    // Add input listener for character count
+    const inputHandler = () => updateCharCount();
+    messageTextarea.addEventListener('input', inputHandler);
+    window.contactFormData.formListeners.add(() => {
+      messageTextarea.removeEventListener('input', inputHandler);
+    });
 
-    // Form submission
-    form.addEventListener('submit', async (e) => {
+    // Initial count
+    updateCharCount();
+
+    // Form submission handler
+    const submitHandler = async (e) => {
       e.preventDefault();
 
-      const message = (messageTextarea as HTMLTextAreaElement).value.trim();
+      const message = messageTextarea.value.trim();
 
       if (!message) {
         alert('Por favor, escreva uma mensagem antes de enviar.');
@@ -73,7 +90,7 @@
         return;
       }
 
-      (submitButton as HTMLButtonElement).disabled = true;
+      submitButton.disabled = true;
       submitButton.innerHTML = '<span class="animate-pulse">Enviando...</span>';
 
       try {
@@ -89,17 +106,22 @@
 
         if (response.ok) {
           alert(data.message || 'Mensagem enviada com sucesso!');
-          (messageTextarea as HTMLTextAreaElement).value = '';
+          messageTextarea.value = '';
           updateCharCount();
 
           // Close contact form after successful submission
-          const formWrapper = document.getElementById('contact-form-wrapper');
-          const toggleButton = document.getElementById('toggle-contact-form');
-          if (formWrapper && toggleButton) {
-            formWrapper.classList.add('hidden');
-            toggleButton.textContent = 'Contactar';
-            toggleButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
-            toggleButton.classList.remove('bg-red-500', 'hover:bg-red-600');
+          if (window.contactFormState) {
+            window.contactFormState.isOpen = false;
+            
+            // Update UI
+            const formWrapper = document.getElementById('contact-form-wrapper');
+            const toggleButton = document.getElementById('toggle-contact-form');
+            if (formWrapper && toggleButton) {
+              formWrapper.classList.add('hidden');
+              toggleButton.textContent = 'Contactar';
+              toggleButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
+              toggleButton.classList.remove('bg-red-500', 'hover:bg-red-600');
+            }
           }
         } else {
           alert(data.message || 'Erro ao enviar mensagem.');
@@ -108,19 +130,36 @@
         console.error('Erro de rede:', error);
         alert('Erro de rede. Por favor, tente novamente.');
       } finally {
-        (submitButton as HTMLButtonElement).disabled = false;
+        submitButton.disabled = false;
         submitButton.innerHTML = '<span>Enviar com carinho</span><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></path></svg>';
       }
+    };
+
+    // Add form listener
+    form.addEventListener('submit', submitHandler);
+    window.contactFormData.formListeners.add(() => {
+      form.removeEventListener('submit', submitHandler);
     });
+
+    window.contactFormData.formInitialized = true;
+    console.log('Contact form initialized');
   }
 
-  // Initialize on DOM content loaded
+  // Initialize on DOM ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initContactForm);
   } else {
-    initContactForm();
+    setTimeout(initContactForm, 50);
   }
 
   // Re-initialize on Astro page transitions
-  document.addEventListener('astro:after-swap', initContactForm);
+  document.addEventListener('astro:after-swap', () => {
+    console.log('ContactForm: Re-initializing after Astro transition');
+    setTimeout(initContactForm, 150);
+  });
+
+  document.addEventListener('astro:page-load', () => {
+    console.log('ContactForm: Re-initializing after page load');
+    setTimeout(initContactForm, 150);
+  });
 </script>

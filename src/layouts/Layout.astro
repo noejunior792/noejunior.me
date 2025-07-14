@@ -64,43 +64,116 @@ const socialImage = image ? new URL(image, Astro.url.origin).href : new URL('/im
       <p>&copy; 2025 Noé Júnior. Todos os direitos reservados.</p>
     </footer>
     <SonnerToast client:load />
+    <script type="module" src="/global.js"></script>
     <script is:inline>
-      // Make stores and toast available globally
-      window.addEventListener('DOMContentLoaded', () => {
-        // Initialize contact form functionality
-        initializeContactForm();
-      });
+      // Global state management
+      window.contactFormState = {
+        isOpen: false,
+        initialized: false
+      };
 
       function initializeContactForm() {
         const toggleButton = document.getElementById('toggle-contact-form');
         const formWrapper = document.getElementById('contact-form-wrapper');
         
-        if (!toggleButton || !formWrapper) return;
-        
-        let isOpen = false;
+        if (!toggleButton || !formWrapper) {
+          console.log('Contact form elements not found');
+          return;
+        }
+
+        // Remove existing listeners to prevent duplicates
+        const newToggleButton = toggleButton.cloneNode(true);
+        toggleButton.parentNode.replaceChild(newToggleButton, toggleButton);
         
         function updateUI() {
-          if (isOpen) {
-            formWrapper.classList.remove('hidden');
-            toggleButton.textContent = 'Fechar';
-            toggleButton.classList.add('bg-red-500', 'hover:bg-red-600');
-            toggleButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+          const currentFormWrapper = document.getElementById('contact-form-wrapper');
+          const currentToggleButton = document.getElementById('toggle-contact-form');
+          
+          if (!currentFormWrapper || !currentToggleButton) return;
+          
+          if (window.contactFormState.isOpen) {
+            currentFormWrapper.classList.remove('hidden');
+            currentToggleButton.textContent = 'Fechar';
+            currentToggleButton.classList.add('bg-red-500', 'hover:bg-red-600');
+            currentToggleButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
           } else {
-            formWrapper.classList.add('hidden');
-            toggleButton.textContent = 'Contactar';
-            toggleButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
-            toggleButton.classList.remove('bg-red-500', 'hover:bg-red-600');
+            currentFormWrapper.classList.add('hidden');
+            currentToggleButton.textContent = 'Contactar';
+            currentToggleButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
+            currentToggleButton.classList.remove('bg-red-500', 'hover:bg-red-600');
           }
         }
         
-        toggleButton.addEventListener('click', (e) => {
+        newToggleButton.addEventListener('click', (e) => {
           e.preventDefault();
-          isOpen = !isOpen;
+          window.contactFormState.isOpen = !window.contactFormState.isOpen;
           updateUI();
         });
         
+        // Initialize UI
         updateUI();
+        window.contactFormState.initialized = true;
+        
+        console.log('Contact form initialized');
       }
+
+      function initializeTheme() {
+        const toggleButton = document.getElementById('theme-toggle');
+        if (!toggleButton) return;
+
+        // Remove existing listeners
+        const newToggleButton = toggleButton.cloneNode(true);
+        toggleButton.parentNode.replaceChild(newToggleButton, toggleButton);
+
+        let currentTheme = localStorage.getItem('theme');
+        if (!currentTheme) {
+          currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          localStorage.setItem('theme', currentTheme);
+        }
+
+        function applyTheme(theme) {
+          if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+          localStorage.setItem('theme', theme);
+        }
+
+        applyTheme(currentTheme);
+
+        newToggleButton.addEventListener('click', () => {
+          currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          applyTheme(currentTheme);
+        });
+
+        console.log('Theme initialized:', currentTheme);
+      }
+
+      function initializeAll() {
+        console.log('Initializing all components...');
+        initializeContactForm();
+        initializeTheme();
+      }
+
+      // Initialize on DOM ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeAll);
+      } else {
+        initializeAll();
+      }
+
+      // Re-initialize on Astro page transitions
+      document.addEventListener('astro:after-swap', () => {
+        console.log('Astro page transition detected, re-initializing...');
+        setTimeout(initializeAll, 100); // Small delay to ensure DOM is ready
+      });
+
+      // Also listen for page load events
+      document.addEventListener('astro:page-load', () => {
+        console.log('Astro page load detected, re-initializing...');
+        setTimeout(initializeAll, 100);
+      });
     </script>
   </body>
 </html>

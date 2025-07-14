@@ -39,51 +39,95 @@
 </button>
 
 <script is:inline>
+  // Global theme state
+  window.themeState = window.themeState || {
+    current: null,
+    initialized: false
+  };
+
   function initTheme() {
     const toggleButton = document.getElementById('theme-toggle');
     const sunIcon = document.getElementById('sun-icon');
     const moonIcon = document.getElementById('moon-icon');
 
-    if (!toggleButton || !sunIcon || !moonIcon) return;
+    if (!toggleButton || !sunIcon || !moonIcon) {
+      console.log('Theme elements not found');
+      return;
+    }
 
-    // Get initial theme
-    let currentTheme = localStorage.getItem('theme');
+    // Remove existing event listeners by cloning the button
+    const newToggleButton = toggleButton.cloneNode(true);
+    toggleButton.parentNode.replaceChild(newToggleButton, toggleButton);
+
+    // Get current theme from global state or localStorage
+    let currentTheme = window.themeState.current || localStorage.getItem('theme');
     if (!currentTheme) {
       currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       localStorage.setItem('theme', currentTheme);
     }
 
-    // Apply theme
+    // Update global state
+    window.themeState.current = currentTheme;
+
+    function updateIcons(theme) {
+      const currentSunIcon = document.getElementById('sun-icon');
+      const currentMoonIcon = document.getElementById('moon-icon');
+      
+      if (!currentSunIcon || !currentMoonIcon) return;
+      
+      if (theme === 'dark') {
+        currentSunIcon.classList.add('hidden');
+        currentMoonIcon.classList.remove('hidden');
+      } else {
+        currentSunIcon.classList.remove('hidden');
+        currentMoonIcon.classList.add('hidden');
+      }
+    }
+
     function applyTheme(theme) {
       if (theme === 'dark') {
         document.documentElement.classList.add('dark');
-        sunIcon.classList.add('hidden');
-        moonIcon.classList.remove('hidden');
       } else {
         document.documentElement.classList.remove('dark');
-        sunIcon.classList.remove('hidden');
-        moonIcon.classList.add('hidden');
       }
       localStorage.setItem('theme', theme);
+      window.themeState.current = theme;
+      updateIcons(theme);
     }
 
-    // Initial theme application
+    // Apply initial theme
     applyTheme(currentTheme);
 
-    // Toggle theme on button click
-    toggleButton.addEventListener('click', () => {
-      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-      applyTheme(currentTheme);
-    });
+    // Add click listener to new button
+    const finalToggleButton = document.getElementById('theme-toggle');
+    if (finalToggleButton) {
+      finalToggleButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        const newTheme = window.themeState.current === 'dark' ? 'light' : 'dark';
+        applyTheme(newTheme);
+      });
+    }
+
+    window.themeState.initialized = true;
+    console.log('Theme initialized:', currentTheme);
   }
 
-  // Initialize on page load
+  // Initialize immediately if DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initTheme);
   } else {
-    initTheme();
+    // Small delay to ensure all elements are in DOM
+    setTimeout(initTheme, 50);
   }
 
-  // Re-initialize on Astro page transitions
-  document.addEventListener('astro:after-swap', initTheme);
+  // Re-initialize on Astro transitions
+  document.addEventListener('astro:after-swap', () => {
+    console.log('Theme: Re-initializing after Astro transition');
+    setTimeout(initTheme, 100);
+  });
+
+  document.addEventListener('astro:page-load', () => {
+    console.log('Theme: Re-initializing after page load');
+    setTimeout(initTheme, 100);
+  });
 </script>
